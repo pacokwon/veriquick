@@ -145,4 +145,39 @@ theorem maxSubarray_correct : Correct maxSubarray := by
       have hsub := maxSubarray_singleton hd
       exact scan_correct _ _ _ _ hsuf hsub
 
+#instrument scan as scan_timed
+#instrument maxSubarray as maxSubarray_timed
+
+#eval scan_timed 0 0 [] -- 0 => 2
+#eval scan_timed 0 0 [1] -- 1 => 7 (+5)
+#eval scan_timed 1 1 [1, -2] -- 2 => 12 (+5)
+#eval scan_timed 1 1 [1, -2, 5] -- 3 => 17 (+5)
+
+#eval maxSubarray_timed [] -- 0 => 3
+#eval maxSubarray_timed [0] -- 1 => 5
+#eval maxSubarray_timed [0, 1] -- 2 => 10
+#eval maxSubarray_timed [1, 1, -2] -- 3 => 15
+#eval maxSubarray_timed [1, 1, -2, 5] -- 4 => 20
+
+theorem scan_timed_cost (currentSum bestSum : Int) (xs : List Int) :
+    (scan_timed currentSum bestSum xs).cost = 5 * xs.length + 2
+  := by
+    induction xs generalizing currentSum bestSum with
+    | nil => simp [scan_timed]
+    | cons hd tl ih =>
+      simp only [TimeM.cost] at ih
+      simp [scan_timed, ih]
+      omega
+
+theorem maxSubarray_timed_cost (xs : List Int) :
+    (maxSubarray_timed xs).cost ≤ 5 * xs.length + 3
+  := by
+    cases xs with
+    | nil => simp [maxSubarray_timed]
+    | cons hd tl =>
+      have h := scan_timed_cost hd hd tl
+      simp only [TimeM.cost] at h
+      simp [maxSubarray_timed, h]
+      omega
+
 end Algorithms.MaxSubarray.Impl
