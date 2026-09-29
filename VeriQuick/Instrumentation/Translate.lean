@@ -374,6 +374,16 @@ mutual
       unless args.size == 3 && args[0]!.isConstOf ``Int && args[1]!.isConstOf ``Int.instNegInt do
         throwError "only canonical Int negation is supported"
       return ← translate ctx (mkApp (mkConst ``Int.neg) args[2]!)
+    if name == ``Max.max || name == ``Min.min then
+      unless args.size == 4 do throwError "malformed min/max application"
+      let isNat := args[0]!.isConstOf ``Nat
+      let instanceName := if name == ``Max.max then
+          (if isNat then ``Nat.instMax else ``Int.instMax)
+        else (if isNat then ``instMinNat else ``Int.instMin)
+      unless (isNat || args[0]!.isConstOf ``Int) && args[1]!.isConstOf instanceName do
+        throwError "only canonical Nat/Int min/max instances are supported"
+      return ← arguments ctx (mkAppN fn (args.extract 0 2)) (args.extract 2 4) fun values => do
+        mkStep (← mkRet (mkAppN fn (args.extract 0 2 ++ values)))
     if [``HAdd.hAdd, ``HSub.hSub, ``HMul.hMul, ``HDiv.hDiv, ``HMod.hMod].contains name then
       unless args.size == 6 do throwError "malformed arithmetic application"
       let isNat := args[0]!.isConstOf ``Nat
