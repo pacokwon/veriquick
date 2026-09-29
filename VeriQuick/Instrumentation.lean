@@ -121,7 +121,7 @@ elab "#instrument " source:ident " as " target:ident : command => do
           let proofStx ← if recPos?.isSome then
               `(by
                 fun_induction $originalStx
-                all_goals simp_all [$src, $dst, TimeM.value, TimeM.fst_done, TimeM.fst_step, TimeM.fst_seq,
+                all_goals simp_all +zetaDelta [$src, $dst, TimeM.value, TimeM.fst_done, TimeM.fst_step, TimeM.fst_seq,
                   TimeM.fst_ite, Bool.cond_eq_ite, nat_beq_value, int_neg_value, intEq, natEq, intLe,
                   natLe, intLt, natLt, arrayRead?, $helpers,*]
                 all_goals try rfl
